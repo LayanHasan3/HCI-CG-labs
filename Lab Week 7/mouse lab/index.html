@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial; text-align: center; }
+        canvas { border: 2px solid #333; background: #fafafa; cursor: crosshair; }
+    </style>
+</head>
+<body>
+    <h1>Mouse Performance: Fitts' Law</h1>
+    <p id="info">Click and drag to see the path and create a target circle!</p>
+    <canvas id="labCanvas" width="800" height="500"></canvas>
+
+    <script>
+        const canvas = document.getElementById("labCanvas");
+        const ctx = canvas.getContext("2d");
+        let sX, sY, isDrawing = false;
+
+        canvas.onmousedown = function(e) {
+            sX = e.offsetX;
+            sY = e.offsetY;
+            isDrawing = true;
+        };
+
+        canvas.onmousemove = function(e) {
+            if (!isDrawing) return;
+            
+            // Clear and redraw to show "active" dragging
+            ctx.clearRect(0, 0, 800, 500);
+            
+            // Draw Start Point
+            ctx.fillStyle = "red";
+            ctx.beginPath(); ctx.arc(sX, sY, 5, 0, 7); ctx.fill();
+
+            // Draw Path from Start to current Cursor
+            ctx.strokeStyle = "#aaa";
+            ctx.setLineDash([5, 5]); // Dashed line for the path
+            ctx.beginPath();
+            ctx.moveTo(sX, sY);
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.stroke();
+        };
+
+        canvas.onmouseup = function(e) {
+            isDrawing = false;
+            let eX = e.offsetX;
+            let eY = e.offsetY;
+
+            // 1. Calculate Distance (D)
+            let D = Math.sqrt((eX - sX)**2 + (eY - sY)**2);
+            let W = 50; // Width of our target circle
+
+            // 2. Final Drawing
+            ctx.setLineDash([]); // Solid line for target
+            ctx.strokeStyle = "blue";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(eX, eY, W/2, 0, 7);
+            ctx.stroke();
+
+            // 3. Fitts' Law Calculation
+            let ID = Math.log2((D / W) + 1);
+            document.getElementById("info").innerHTML = 
+                "<b>Distance (D):</b> " + D.toFixed(0) + "px | " +
+                "<b>Target Width (W):</b> " + W + "px | " +
+                "<b>ID:</b> " + ID.toFixed(2) + " bits";
+        };
+    </script>
+</body>
+</html>

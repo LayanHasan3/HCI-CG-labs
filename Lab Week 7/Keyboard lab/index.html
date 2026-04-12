@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <h1>Keyboard Performance</h1>
+    <h2 id="display">Press SPACE to Start</h2>
+    <p id="time"></p>
+
+    <script>
+        let start;
+        let target = "";
+        let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+        document.onkeydown = function(e) {
+            let key = e.key.toUpperCase();
+
+            // Start logic
+            if (target === "" && key === " ") {
+                next();
+            } 
+            // Match logic
+            else if (key === target) {
+                let end = Date.now();
+                document.getElementById("time").innerHTML = "Reaction: " + (end - start) + "ms";
+                next();
+            }
+        };
+
+        function next() {
+            target = alphabet[Math.floor(Math.random() * 26)];
+            document.getElementById("display").innerHTML = "Press: " + target;
+            start = Date.now(); // Record start time
+        }
+    </script>
+</body>
+</html>
