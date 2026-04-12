@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Week 09 Lab – 3D Rotation & Translation</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0d0d1a;
+      color: #e0e0e0;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 18px;
+      color: #7eb8ff;
+      margin-bottom: 4px;
+      letter-spacing: 1px;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 16px;
+    }
+
+    .layout {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    canvas {
+      background: #080812;
+      border: 1px solid #2a2a4a;
+      border-radius: 8px;
+      display: block;
+    }
+
+    .panel {
+      width: 240px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card {
+      background: #12122a;
+      border: 1px solid #2a2a4a;
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .card h3 {
+      font-size: 12px;
+      color: #7eb8ff;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .stat-row .label { color: #888; }
+    .stat-row .val   { color: #fff; font-weight: bold; }
+
+    .key-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+      font-size: 11px;
+    }
+
+    .key-item {
+      background: #1a1a35;
+      border: 1px solid #2a2a4a;
+      border-radius: 4px;
+      padding: 5px 7px;
+      color: #ccc;
+    }
+
+    .key-item code {
+      color: #7eb8ff;
+      background: #0d0d2a;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-size: 11px;
+    }
+
+    .matrix-box {
+      font-size: 11px;
+      line-height: 1.8;
+      color: #aaffaa;
+      white-space: pre;
+      background: #080812;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #1a3a1a;
+    }
+
+    button {
+      background: #1a1a35;
+      color: #7eb8ff;
+      border: 1px solid #3a3a6a;
+      border-radius: 6px;
+      padding: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.2s;
+    }
+
+    button:hover { background: #2a2a55; }
+    button:active { background: #3a3a70; }
+
+    .axis-x { color: #ff5555; }
+    .axis-y { color: #55ff88; }
+    .axis-z { color: #5588ff; }
+  </style>
+</head>
+<body>
+
+<h1>Week 09 Lab — 3D Rotation &amp; Translation</h1>
+
+<div class="layout">
+
+  <canvas id="canvas" width="500" height="460" tabindex="0"></canvas>
+
+  <div class="panel">
+
+    <div class="card">
+      <h3>Rotation Angles</h3>
+      <div class="stat-row">
+        <span class="label axis-x">X-axis (Pitch)</span>
+        <span class="val" id="valRX">0°</span>
+      </div>
+      <div class="stat-row">
+        <span class="label axis-y">Y-axis (Yaw)</span>
+        <span class="val" id="valRY">0°</span>
+      </div>
+      <div class="stat-row">
+        <span class="label axis-z">Z-axis (Roll)</span>
+        <span class="val" id="valRZ">0°</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Translation (6DoF)</h3>
+      <div class="stat-row">
+        <span class="label axis-x">Sway  (X)</span>
+        <span class="val" id="valTX">0.0</span>
+      </div>
+      <div class="stat-row">
+        <span class="label axis-y">Heave (Y)</span>
+        <span class="val" id="valTY">0.0</span>
+      </div>
+      <div class="stat-row">
+        <span class="label axis-z">Surge (Z)</span>
+        <span class="val" id="valTZ">0.0</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Ry Matrix (4×4)</h3>
+      <div class="matrix-box" id="matBox">—</div>
+    </div>
+
+    <div class="card">
+      <h3>Controls</h3>
+      <div class="key-grid">
+        <div class="key-item"><code>x</code> / <code>X</code> Pitch ±</div>
+        <div class="key-item"><code>y</code> / <code>Y</code> Yaw ±</div>
+        <div class="key-item"><code>z</code> / <code>Z</code> Roll ±</div>
+        <div class="key-item"><code>← →</code> Sway</div>
+        <div class="key-item"><code>↑ ↓</code> Heave</div>
+        <div class="key-item"><code>w</code> / <code>s</code> Surge</div>
+      </div>
+    </div>
+
+    <button onclick="resetAll()">Reset All &nbsp;[ R ]</button>
+
+  </div>
+</div>
+
+<script>
+  // ─── State ───────────────────────────────────────────────
+  let aX = 0, aY = 0, aZ = 0;       // rotation angles in degrees
+  let tX = 0, tY = 0, tZ = 0;       // translation values
+  const RSTEP = 5;                   // degrees per keypress
+  const TSTEP = 0.2;                 // units per keypress
+
+  // ─── Cube vertices (centred at origin, side = 2) ─────────
+  const VERTS = [
+    [-1,-1,-1], [ 1,-1,-1], [ 1, 1,-1], [-1, 1,-1],
+    [-1,-1, 1], [ 1,-1, 1], [ 1, 1, 1], [-1, 1, 1]
+  ];
+
+  const EDGES = [
+    [0,1],[1,2],[2,3],[3,0],  // back face
+    [4,5],[5,6],[6,7],[7,4],  // front face
+    [0,4],[1,5],[2,6],[3,7]   // connecting edges
+  ];
+
+  // faces: [v0,v1,v2,v3, fillColor]
+  const FACES = [
+    [0,1,2,3, '#1e6fbf'],  // back   – blue
+    [4,5,6,7, '#bf4040'],  // front  – red
+    [0,1,5,4, '#2a9e5a'],  // bottom – green
+    [2,3,7,6, '#c4922a'],  // top    – amber
+    [0,3,7,4, '#7a3dbf'],  // left   – purple
+    [1,2,6,5, '#bf5e2a'],  // right  – orange
+  ];
+
+  // ─── Matrix helpers ──────────────────────────────────────
+  function deg(d) { return d * Math.PI / 180; }
+
+  // 4×4 identity
+  function identity() {
+    return [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]];
+  }
+
+  // 4×4 × 4×4
+  function mulMat(A, B) {
+    const R = [[],[],[],[]];
+    for (let i = 0; i < 4; i++)
+      for (let j = 0; j < 4; j++) {
+        let s = 0;
+        for (let k = 0; k < 4; k++) s += A[i][k] * B[k][j];
+        R[i][j] = s;
+      }
+    return R;
+  }
+
+  // 4×4 × 4×1
+  function mulVec(M, v) {
+    return M.map(row =>
+      row[0]*v[0] + row[1]*v[1] + row[2]*v[2] + row[3]*v[3]
+    );
+  }
+
+  // Rotation matrices (4×4 homogeneous)
+  function Rx(a) {
+    const c = Math.cos(a), s = Math.sin(a);
+    return [
+      [1,  0,  0, 0],
+      [0,  c, -s, 0],
+      [0,  s,  c, 0],
+      [0,  0,  0, 1]
+    ];
+  }
+
+  function Ry(a) {
+    const c = Math.cos(a), s = Math.sin(a);
+    return [
+      [ c, 0, s, 0],
+      [ 0, 1, 0, 0],
+      [-s, 0, c, 0],
+      [ 0, 0, 0, 1]
+    ];
+  }
+
+  function Rz(a) {
+    const c = Math.cos(a), s = Math.sin(a);
+    return [
+      [c, -s, 0, 0],
+      [s,  c, 0, 0],
+      [0,  0, 1, 0],
+      [0,  0, 0, 1]
+    ];
+  }
+
+  // Combined rotation matrix: Rz * Ry * Rx  (applied right to left)
+  function combinedRotation() {
+    return mulMat(Rz(deg(aZ)), mulMat(Ry(deg(aY)), Rx(deg(aX))));
+  }
+
+  // ─── Projection (perspective) ────────────────────────────
+  const FOV   = 4;
+  const SCALE = 110;
+  const ZDIST = 5;   // camera distance
+
+  function project(p, cx, cy) {
+    const z = p[2] + ZDIST + tZ;
+    const f = FOV / Math.max(z, 0.01);
+    return [
+      cx + (p[0] + tX) * f * SCALE,
+      cy - (p[1] + tY) * f * SCALE
+    ];
+  }
+
+  // ─── Draw ─────────────────────────────────────────────────
+  const canvas = document.getElementById('canvas');
+  const ctx    = canvas.getContext('2d');
+
+  function draw() {
+    const W = canvas.width, H = canvas.height;
+    const cx = W / 2, cy = H / 2;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // draw grid
+    ctx.strokeStyle = '#1a1a2e';
+    ctx.lineWidth   = 0.5;
+    for (let i = 0; i <= W; i += 40) {
+      ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,H); ctx.stroke();
+    }
+    for (let j = 0; j <= H; j += 40) {
+      ctx.beginPath(); ctx.moveTo(0,j); ctx.lineTo(W,j); ctx.stroke();
+    }
+
+    const M = combinedRotation();
+
+    // transform all vertices
+    const tv = VERTS.map(v => mulVec(M, [v[0], v[1], v[2], 1]));
+
+    // painter's algorithm: sort faces back to front by avg Z
+    const sortedFaces = FACES.map(f => {
+      const pts = [f[0],f[1],f[2],f[3]].map(i => tv[i]);
+      const avgZ = pts.reduce((a,p) => a + p[2], 0) / 4;
+      return { pts, color: f[4], avgZ };
+    }).sort((a, b) => a.avgZ - b.avgZ);
+
+    // draw faces
+    sortedFaces.forEach(({ pts, color }) => {
+      const proj = pts.map(p => project(p, cx, cy));
+      ctx.beginPath();
+      ctx.moveTo(proj[0][0], proj[0][1]);
+      proj.slice(1).forEach(p => ctx.lineTo(p[0], p[1]));
+      ctx.closePath();
+      ctx.fillStyle   = color + 'bb';
+      ctx.strokeStyle = color;
+      ctx.lineWidth   = 1.8;
+      ctx.fill();
+      ctx.stroke();
+    });
+
+    // draw edges (subtle white outline)
+    EDGES.forEach(([a,b]) => {
+      const pa = project(tv[a], cx, cy);
+      const pb = project(tv[b], cx, cy);
+      ctx.beginPath();
+      ctx.moveTo(pa[0], pa[1]);
+      ctx.lineTo(pb[0], pb[1]);
+      ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+      ctx.lineWidth   = 0.8;
+      ctx.stroke();
+    });
+
+    // draw origin axes
+    drawAxes(M, cx, cy);
+
+    // update UI
+    updateUI(M);
+  }
+
+  function drawAxes(M, cx, cy) {
+    const axes = [
+      { dir: [1,0,0,0], color: '#ff5555', label: 'X' },
+      { dir: [0,1,0,0], color: '#55ff88', label: 'Y' },
+      { dir: [0,0,1,0], color: '#5588ff', label: 'Z' },
+    ];
+    axes.forEach(({ dir, color, label }) => {
+      const r = mulVec(M, dir);
+      const ep = project([r[0]*1.8, r[1]*1.8, r[2]*1.8], cx, cy);
+      const op = project([0, 0, 0], cx, cy);
+      ctx.beginPath();
+      ctx.moveTo(op[0], op[1]);
+      ctx.lineTo(ep[0], ep[1]);
+      ctx.strokeStyle = color;
+      ctx.lineWidth   = 2;
+      ctx.stroke();
+      ctx.fillStyle = color;
+      ctx.font = 'bold 13px Courier New';
+      ctx.fillText(label, ep[0] + 5, ep[1] - 5);
+    });
+  }
+
+  function updateUI(M) {
+    document.getElementById('valRX').textContent = aX + '°';
+    document.getElementById('valRY').textContent = aY + '°';
+    document.getElementById('valRZ').textContent = aZ + '°';
+    document.getElementById('valTX').textContent = tX.toFixed(1);
+    document.getElementById('valTY').textContent = tY.toFixed(1);
+    document.getElementById('valTZ').textContent = tZ.toFixed(1);
+
+    // show the current Ry 4x4 matrix
+    const a  = deg(aY);
+    const c  = Math.cos(a).toFixed(3);
+    const s  = Math.sin(a).toFixed(3);
+    const ns = (-Math.sin(a)).toFixed(3);
+    document.getElementById('matBox').textContent =
+`Ry(${aY}°) =
+┌                      ┐
+│  ${c}  0   ${s}  0 │
+│  0.000   1  0.000  0 │
+│  ${ns}  0   ${c}  0 │
+│  0.000   0  0.000  1 │
+└                      ┘`;
+  }
+
+  // ─── Keyboard ────────────────────────────────────────────
+  document.addEventListener('keydown', e => {
+    switch (e.key) {
+      // rotation
+      case 'x': aX = (aX + RSTEP) % 360;           break;
+      case 'X': aX = (aX - RSTEP + 360) % 360;     break;
+      case 'y': aY = (aY + RSTEP) % 360;            break;
+      case 'Y': aY = (aY - RSTEP + 360) % 360;      break;
+      case 'z': aZ = (aZ + RSTEP) % 360;            break;
+      case 'Z': aZ = (aZ - RSTEP + 360) % 360;      break;
+      // translation
+      case 'ArrowLeft':  e.preventDefault(); tX -= TSTEP; break;
+      case 'ArrowRight': e.preventDefault(); tX += TSTEP; break;
+      case 'ArrowUp':    e.preventDefault(); tY += TSTEP; break;
+      case 'ArrowDown':  e.preventDefault(); tY -= TSTEP; break;
+      case 'w': tZ += TSTEP; break;
+      case 's': tZ -= TSTEP; break;
+      // reset
+      case 'r': case 'R': resetAll(); return;
+      default: return;
+    }
+    draw();
+  });
+
+  function resetAll() {
+    aX=0; aY=0; aZ=0;
+    tX=0; tY=0; tZ=0;
+    draw();
+  }
+
+  // focus canvas so keys work immediately
+  canvas.focus();
+  draw();
+</script>
+</body>
+</html>

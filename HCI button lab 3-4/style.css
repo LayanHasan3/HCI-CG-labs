@@ -1,0 +1,52 @@
+body { 
+    font-family: Arial, sans-serif; 
+    padding: 20px; 
+}
+
+/* AFFORDANCE - Blue border indicates it is an interactive element */
+#actionBtn {
+    padding: 10px 20px;
+    border: 3px solid #007bff;
+    background: white;
+    cursor: pointer;
+    width: fit-content;
+
+}
+/* SIGNIFIER - Tooltip for Discoverability on hover */
+#actionBtn:hover::after {
+    content: " Click to process (Max 3)";
+    position: absolute;
+    background: #333;
+    color: #fff;
+    padding: 5px;
+    border-radius: 4px;
+    font-size: 12px;
+    margin-left: 10px;
+}
+
+/* MAPPING - Status container styling */
+#status {
+    margin-top: 10px;
+    border: 3px solid #28a745; /* Green */
+    padding: 10px;
+    min-height: 20px;
+    width: fit-content;
+}
+
+/* FEEDBACK - Yellow background and scale down on click */
+.click-feedback {
+    background-color: #ffc107 !important;
+    transform: scale(0.95);
+}
+
+/* CONSTRAINT - Red border when disabled */
+.constrained {
+    border-color: #dc3545 !important;
+}
+
+/* SIGNIFIER - Purple background when state is locked */
+.disabled-signifier {
+    background-color: #6f42c1 !important;
+    color: white;
+    opacity: 0.7;
+}
