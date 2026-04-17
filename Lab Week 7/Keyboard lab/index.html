@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <body>
-    <h1>Keyboard Performance</h1>
+    <h1>Keyboard Performance Lab</h1>
     <h2 id="display">Press SPACE to Start</h2>
     <p id="time"></p>
 
@@ -10,11 +10,12 @@
         let target = "";
         let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
+        // onkeydown event listener to capture key presses. e is the event object that contains information about the key press.
         document.onkeydown = function(e) {
-            let key = e.key.toUpperCase();
+            let key = e.key.toUpperCase(); // Convert the pressed key to uppercase for comparison
 
             // Start logic
-            if (target === "" && key === " ") {
+            if (target == "" && key == " ") {
                 next();
             } 
             // Match logic
