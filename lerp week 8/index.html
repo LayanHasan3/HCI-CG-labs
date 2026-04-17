@@ -4,14 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Week 08: LERP Lab</title> 
-    <style>
-        body { margin: 0; overflow: hidden; } /* Removes scrollbars */
-        canvas { display: block; background: #fdfdfd; }
-    </style>
 </head>
 <body>
-    <h2>Mouse interaction with Minimal lerp tool/application</h2>
-    <canvas id="myCanvas"></canvas>
-    <script src="draw.js"></script>
+<p> Enter two values between which new number would be lerped</p>
+<table>
+    <tr>
+        <td>Value 1:</td>
+        <td><input type="number" id="value1"></td>
+    </tr>
+    <tr>
+        <td>Value 2:</td>
+        <td><input type="number" id="value2"></td>
+    </tr>
+</table>
+<p>Move the slider to observe the amount of lerping</p>
+
+<input type="range" id="lerpSlider" min="0" max="1" step="0.01" value="0.5">
+<p id="result"></p>
+
+<p> The amount of lerping is <span id="lerpAmount"></span></p>
+<p> the lerped value is <span id="lerpedValue"></span></p>
+<script>
+    const value1Input = document.getElementById('value1');
+    const value2Input = document.getElementById('value2');
+    const lerpSlider = document.getElementById('lerpSlider');
+    const resultDisplay = document.getElementById('result');
+    const lerpAmountDisplay = document.getElementById('lerpAmount');
+    const lerpedValueDisplay = document.getElementById('lerpedValue');
+
+    //lerp
+    function lerp(start, end, t) {
+        return start * (1 - t) + end * t;
+    }
+
+    // by the help of AI 
+    function updateLerp() {
+        const start = parseFloat(value1Input.value) || 0;
+        const end = parseFloat(value2Input.value) || 0;
+        const t = parseFloat(lerpSlider.value);
+
+        lerpAmountDisplay.textContent = t;
+        lerpedValueDisplay.textContent = lerp(start, end, t);
+    }
+
+    // Listen for changes on all three inputs
+    lerpSlider.addEventListener('input', updateLerp);
+    value1Input.addEventListener('input', updateLerp);
+    value2Input.addEventListener('input', updateLerp);
+
+    // Run once on load to show initial value
+    updateLerp();
+
+
+</script>
 </body>
 </html>
