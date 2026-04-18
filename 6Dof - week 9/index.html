@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>6DoF Lab</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>6 Degrees of Freedom - Lab</h1>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> 
+<script>
+// Scene
+const scene = new THREE.Scene();
+
+// Camera
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000); //
+camera.position.z = 3;
+
+// Renderer
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0xffffff); // i want white background
+document.body.appendChild(renderer.domElement);
+
+// Cube (object at origin)
+const geometry = new THREE.BoxGeometry(); 
+const material = new THREE.MeshBasicMaterial({ color: "green"  }); 
+const cube = new THREE.Mesh(geometry, material); // Combines shape+color
+scene.add(cube);
+
+// Keyboard Controls
+document.onkeydown = function(e) {
+
+  //  Rotation
+  //up/down - Pitch
+  if (e.key == 'x') cube.rotation.x += 0.1;
+  if (e.key == 'X') cube.rotation.x -= 0.1;
+
+  //left/right - Yaw
+  if (e.key == 'y') cube.rotation.y += 0.1;
+  if (e.key == 'Y') cube.rotation.y -= 0.1;
+ 
+  //tilt sideways- Roll
+  if (e.key == 'z') cube.rotation.z += 0.1;
+  if (e.key == 'Z') cube.rotation.z -= 0.1;
+
+  //  Translation
+
+  // up/down - Heave
+  if (e.key == 'ArrowUp') cube.position.y += 0.1;
+  if (e.key == 'ArrowDown') cube.position.y -= 0.1;
+  
+  //left/right - Sway
+  if (e.key == 'ArrowLeft') cube.position.x -= 0.1;
+  if (e.key == 'ArrowRight') cube.position.x += 0.1;
+
+  // extra keys (a s d f)
+  //move closer to camera
+  if (e.key == 'a') cube.position.z += 0.1;
+  //move away from camera
+  if (e.key == 'd') cube.position.z -= 0.1;
+
+  // move up/down- heave
+  if (e.key == 'f') cube.position.y += 0.1;
+  if (e.key == 's') cube.position.y -= 0.1;
+
+};
+
+// Animate
+function animate() {
+  requestAnimationFrame(animate);
+  renderer.render(scene, camera);
+}
+animate();
+
+</script>
+
+</body>
+</html>
